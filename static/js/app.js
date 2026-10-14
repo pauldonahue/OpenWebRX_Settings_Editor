@@ -194,55 +194,74 @@ function renderDevices() {
   const el = document.getElementById('devices-list');
   const sdrs = state.settings.sdrs || {};
   const ids = Object.keys(sdrs);
+
   if (!ids.length) {
-    el.innerHTML = `<div class="card"><div class="card-body">
-      <div class="empty-state"><i class="fa fa-microchip"></i>
-      <p>No SDR devices defined yet. Click <strong>Add Device</strong> to get started.</p>
-      </div></div></div>`;
+    el.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <i class="fa fa-microchip"></i>
+            <p>No SDR devices defined yet. Click <strong>Add Device</strong> to get started.</p>
+          </div>
+        </div>
+      </div>`;
     return;
   }
+
   el.innerHTML = ids.map(id => {
     const sdr = sdrs[id];
     const pCount = Object.keys(sdr.profiles || {}).length;
-    return `<div class="device-card">
-      <div class="device-icon"><i class="fa fa-microchip"></i></div>
-      <div class="device-info">
-        <div class="device-name">${esc(sdr.name || id)}</div>
-        <div class="device-meta">ID: ${esc(id)} · ${esc(sdr.type)} · gain ${sdr.rf_gain ?? '—'} · ${pCount} profile${pCount !== 1?'s':''}</div>
+
+    return `
+      <div class="device-card">
+
+        <div class="device-icon">
+          <i class="fa fa-microchip"></i>
+        </div>
+
+        <div class="device-info">
+          <div class="device-name">${esc(sdr.name || id)}</div>
+          <div class="device-meta">
+            ID: ${esc(id)} · ${esc(sdr.type)} · gain ${sdr.rf_gain ?? '—'} · ${pCount} profile${pCount !== 1 ? 's' : ''}
+          </div>
+        </div>
+
+        <div class="card-actions">
+
+          <button class="icon-btn"
+                  title="Clone Device"
+                  onclick="cloneDevice('${esc(id)}')">
+            <i class="fa fa-clone"></i>
+          </button>
+
+          <button class="icon-btn"
+                  title="Copy All Profiles"
+                  onclick="copyAllProfilesToSdr('${esc(id)}')">
+            <i class="fa fa-copy"></i>
+          </button>
+
+          <button class="icon-btn primary"
+                  title="Add Profile"
+                  onclick="openProfileModal('${esc(id)}')">
+            <i class="fa fa-plus"></i>
+          </button>
+
+          <button class="icon-btn"
+                  title="Edit Device"
+                  onclick="openDeviceModal('${esc(id)}')">
+            <i class="fa fa-pen"></i>
+          </button>
+
+          <button class="icon-btn danger"
+                  title="Delete Device"
+                  onclick="deleteDevice('${esc(id)}')">
+            <i class="fa fa-trash"></i>
+          </button>
+
+        </div>
+
       </div>
-      <div class="card-actions">
-
-  <button class="icon-btn"
-          title="Clone Device"
-          onclick="cloneDevice('${esc(id)}')">
-    <i class="fa fa-clone"></i>
-  </button>
-
-  <button class="icon-btn"
-          title="Copy All Profiles"
-          onclick="copyAllProfilesToSdr('${esc(id)}')">
-    <i class="fa fa-copy"></i>
-  </button>
-
-  <button class="icon-btn primary"
-          title="Add Profile"
-          onclick="openProfileModal('${esc(id)}')">
-    <i class="fa fa-plus"></i>
-  </button>
-
-  <button class="icon-btn"
-          title="Edit Device"
-          onclick="openDeviceModal('${esc(id)}')">
-    <i class="fa fa-pen"></i>
-  </button>
-
-  <button class="icon-btn danger"
-          title="Delete Device"
-          onclick="deleteDevice('${esc(id)}')">
-    <i class="fa fa-trash"></i>
-  </button>
-
-</div>;
+    `;
   }).join('');
 }
 
