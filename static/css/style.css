@@ -615,3 +615,9 @@ label {
   .form-group.span2 { grid-column: span 1; }
   .stat-cards { grid-template-columns: 1fr 1fr; }
 }
+
+.icon-btn .fa-clone,
+.icon-btn .fa-right-left,
+.icon-btn .fa-copy {
+    font-size: 12px;
+}
