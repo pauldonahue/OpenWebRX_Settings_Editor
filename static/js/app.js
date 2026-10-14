@@ -211,16 +211,39 @@ function renderDevices() {
         <div class="device-meta">ID: ${esc(id)} · ${esc(sdr.type)} · gain ${sdr.rf_gain ?? '—'} · ${pCount} profile${pCount !== 1?'s':''}</div>
       </div>
       <div class="card-actions">
-        <button class="icon-btn primary" title="Add Profile to this device" onclick="openProfileModal('${esc(id)}')">
-          <i class="fa fa-plus"></i>
-        </button>
-        <button class="icon-btn" title="Edit Device" onclick="openDeviceModal('${esc(id)}')">
-          <i class="fa fa-pen"></i>
-        </button>
-        <button class="icon-btn danger" title="Delete Device" onclick="deleteDevice('${esc(id)}')">
-          <i class="fa fa-trash"></i>
-        </button>
-      </div>
+        <div class="card-actions">
+
+  <button class="icon-btn"
+          title="Clone Device"
+          onclick="cloneDevice('${esc(id)}')">
+    <i class="fa fa-clone"></i>
+  </button>
+
+  <button class="icon-btn"
+          title="Copy All Profiles"
+          onclick="copyAllProfilesToSdr('${esc(id)}')">
+    <i class="fa fa-copy"></i>
+  </button>
+
+  <button class="icon-btn primary"
+          title="Add Profile to this device"
+          onclick="openProfileModal('${esc(id)}')">
+    <i class="fa fa-plus"></i>
+  </button>
+
+  <button class="icon-btn"
+          title="Edit Device"
+          onclick="openDeviceModal('${esc(id)}')">
+    <i class="fa fa-pen"></i>
+  </button>
+
+  <button class="icon-btn danger"
+          title="Delete Device"
+          onclick="deleteDevice('${esc(id)}')">
+    <i class="fa fa-trash"></i>
+  </button>
+
+</div>
     </div>`;
   }).join('');
 }
@@ -305,6 +328,228 @@ function deleteDevice(id) {
   });
 }
 
+function cloneDevice(sourceId) {
+
+  const source =
+    state.settings.sdrs[sourceId];
+
+  let targetId = prompt(
+    "Enter new SDR ID",
+    sourceId + "_copy"
+  );
+
+  if (!targetId)
+    return;
+
+  targetId = targetId.trim();
+
+  if (state.settings.sdrs[targetId]) {
+    toast("SDR ID already exists", "error");
+    return;
+  }
+
+  const clone =
+    structuredClone(source);
+
+  clone.name =
+    (clone.name || sourceId) +
+    " Copy";
+
+  state.settings.sdrs[targetId] =
+    clone;
+
+  refreshAll();
+
+  toast(
+    "Cloned SDR: " + targetId,
+    "success"
+  );
+}
+
+function duplicateProfile(
+  sdrId,
+  profId
+) {
+
+  const profile =
+    structuredClone(
+      state.settings
+        .sdrs[sdrId]
+        .profiles[profId]
+    );
+
+  let newId =
+    profId + "_copy";
+
+  let i = 1;
+
+  while (
+    state.settings
+      .sdrs[sdrId]
+      .profiles[newId]
+  ) {
+    newId =
+      profId +
+      "_copy" +
+      i++;
+  }
+
+  profile.name =
+    (profile.name || profId)
+    + " Copy";
+
+  state.settings
+    .sdrs[sdrId]
+    .profiles[newId] =
+      profile;
+
+  refreshAll();
+
+  toast(
+    "Profile duplicated",
+    "success"
+  );
+}
+
+function copyProfileToSdr(
+  sourceSdrId,
+  profId
+) {
+
+  const destinations =
+    Object.keys(
+      state.settings.sdrs
+    ).filter(
+      id => id !== sourceSdrId
+    );
+
+  if (!destinations.length) {
+
+    toast(
+      "No destination SDRs available",
+      "warning"
+    );
+
+    return;
+  }
+
+  const targetId =
+    prompt(
+      "Copy profile to SDR:\n\n" +
+      destinations.join("\n")
+    );
+
+  if (
+    !targetId ||
+    !state.settings.sdrs[targetId]
+  ) {
+    return;
+  }
+
+  const profile =
+    structuredClone(
+      state.settings
+        .sdrs[sourceSdrId]
+        .profiles[profId]
+    );
+
+  let newId = profId;
+
+  while (
+    state.settings
+      .sdrs[targetId]
+      .profiles[newId]
+  ) {
+    newId += "_copy";
+  }
+
+  state.settings
+    .sdrs[targetId]
+    .profiles[newId] =
+      profile;
+
+  refreshAll();
+
+  toast(
+    `Copied to ${targetId}`,
+    "success"
+  );
+}
+
+function copyAllProfilesToSdr(
+  sourceSdrId
+) {
+
+  const destinations =
+    Object.keys(
+      state.settings.sdrs
+    ).filter(
+      id => id !== sourceSdrId
+    );
+
+  if (!destinations.length) {
+
+    toast(
+      "No destination SDRs available",
+      "warning"
+    );
+
+    return;
+  }
+
+  const targetId =
+    prompt(
+      "Copy ALL profiles to SDR:\n\n" +
+      destinations.join("\n")
+    );
+
+  if (
+    !targetId ||
+    !state.settings.sdrs[targetId]
+  ) {
+    return;
+  }
+
+  const sourceProfiles =
+    state.settings
+      .sdrs[sourceSdrId]
+      .profiles || {};
+
+  const targetProfiles =
+    state.settings
+      .sdrs[targetId]
+      .profiles;
+
+  let copied = 0;
+
+  Object.entries(
+    sourceProfiles
+  ).forEach(
+    ([id, profile]) => {
+
+      let newId = id;
+
+      while (
+        targetProfiles[newId]
+      ) {
+        newId += "_copy";
+      }
+
+      targetProfiles[newId] =
+        structuredClone(profile);
+
+      copied++;
+
+    }
+  );
+
+  refreshAll();
+
+  toast(
+    `${copied} profiles copied`,
+    "success"
+  );
+}
 /* ── Profiles ─────────────────────────────────────────────────────────────── */
 function getProfileFilterSdrEl() { return document.getElementById('profile-filter-sdr'); }
 
@@ -360,12 +605,32 @@ function renderProfiles() {
       <div class="profile-freq">${formatFreq(p.center_freq)}</div>
       <div class="mod-badge">${esc(p.start_mod || '—')}</div>
       <div class="card-actions">
-        <button class="icon-btn" title="Edit" onclick="openProfileModal('${esc(sdrId)}','${esc(profId)}')">
-          <i class="fa fa-pen"></i>
-        </button>
-        <button class="icon-btn danger" title="Delete" onclick="deleteProfile('${esc(sdrId)}','${esc(profId)}')">
-          <i class="fa fa-trash"></i>
-        </button>
+        <div class="card-actions">
+
+  <button class="icon-btn"
+          title="Duplicate"
+          onclick="duplicateProfile('${esc(sdrId)}','${esc(profId)}')">
+    <i class="fa fa-copy"></i>
+  </button>
+
+  <button class="icon-btn"
+          title="Copy To SDR"
+          onclick="copyProfileToSdr('${esc(sdrId)}','${esc(profId)}')">
+    <i class="fa fa-right-left"></i>
+  </button>
+
+  <button class="icon-btn"
+          title="Edit"
+          onclick="openProfileModal('${esc(sdrId)}','${esc(profId)}')">
+    <i class="fa fa-pen"></i>
+  </button>
+
+  <button class="icon-btn danger"
+          title="Delete"
+          onclick="deleteProfile('${esc(sdrId)}','${esc(profId)}')">
+    <i class="fa fa-trash"></i>
+  </button>
+
       </div>
     </div>`).join('');
 }
