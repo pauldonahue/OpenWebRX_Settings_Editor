@@ -323,7 +323,9 @@ function saveDevice() {
 
   const dev = document.getElementById('d-device').value.trim();
   if (dev) sdr.device = dev; else delete sdr.device;
-
+   if (type === 'rtl_tcp' && dev) {
+    sdr.device = dev;
+   }
   const drv = document.getElementById('d-driver').value.trim();
   if (drv) sdr.driver = drv; else delete sdr.driver;
 
