@@ -583,73 +583,129 @@ function refreshProfileFilter() {
 
 function renderProfiles() {
   refreshProfileFilter();
+
   const el = document.getElementById('profiles-list');
-  const sdrFilter = document.getElementById('profile-filter-sdr')?.value || '';
-  const search = (document.getElementById('profile-search')?.value || '').toLowerCase();
+  const sdrFilter =
+    document.getElementById('profile-filter-sdr')?.value || '';
+
+  const search =
+    (document.getElementById('profile-search')?.value || '')
+      .toLowerCase();
+
   const sdrs = state.settings.sdrs || {};
 
   let cards = [];
+
   Object.keys(sdrs).forEach(sdrId => {
-    if (sdrFilter && sdrId !== sdrFilter) return;
+
+    if (sdrFilter && sdrId !== sdrFilter)
+      return;
+
     const sdr = sdrs[sdrId];
     const profiles = sdr.profiles || {};
+
     Object.keys(profiles).forEach(profId => {
+
       const p = profiles[profId];
-      if (search && !JSON.stringify(p).toLowerCase().includes(search) && !profId.includes(search)) return;
-      cards.push({ sdrId, profId, sdrName: sdr.name || sdrId, p });
+
+      if (
+        search &&
+        !JSON.stringify(p).toLowerCase().includes(search) &&
+        !profId.toLowerCase().includes(search)
+      ) {
+        return;
+      }
+
+      cards.push({
+        sdrId,
+        profId,
+        sdrName: sdr.name || sdrId,
+        p
+      });
+
     });
+
   });
 
   if (!cards.length) {
-    el.innerHTML = `<div class="card"><div class="card-body">
-      <div class="empty-state"><i class="fa fa-list-radio"></i>
-      <p>No profiles found. Add a device first, then add profiles to it.</p>
-      </div></div></div>`;
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="card-body">
+          <div class="empty-state">
+            <i class="fa fa-list-radio"></i>
+            <p>No profiles found. Add a device first, then add profiles to it.</p>
+          </div>
+        </div>
+      </div>
+    `;
+
     return;
   }
 
   el.innerHTML = cards.map(({ sdrId, profId, sdrName, p }) => `
+
     <div class="profile-card">
-      <div class="profile-icon"><i class="fa fa-radio"></i></div>
+
+      <div class="profile-icon">
+        <i class="fa fa-radio"></i>
+      </div>
+
       <div class="profile-info">
-        <div class="profile-name">${esc(p.name || profId)}</div>
-        <div class="profile-meta">
-          ${esc(sdrName)} · ID: ${esc(profId)} · SR: ${formatFreq(p.samp_rate)}
-          ${p.rf_gain !== undefined ? ' · gain '+p.rf_gain : ''}
-          ${p.tuning_step ? ' · step '+formatFreq(p.tuning_step) : ''}
+
+        <div class="profile-name">
+          ${esc(p.name || profId)}
         </div>
+
+        <div class="profile-meta">
+          ${esc(sdrName)}
+          · ID: ${esc(profId)}
+          · SR: ${formatFreq(p.samp_rate)}
+          ${p.rf_gain !== undefined ? ' · gain ' + p.rf_gain : ''}
+          ${p.tuning_step ? ' · step ' + formatFreq(p.tuning_step) : ''}
+        </div>
+
       </div>
-      <div class="profile-freq">${formatFreq(p.center_freq)}</div>
-      <div class="mod-badge">${esc(p.start_mod || '—')}</div>
+
+      <div class="profile-freq">
+        ${formatFreq(p.center_freq)}
+      </div>
+
+      <div class="mod-badge">
+        ${esc(p.start_mod || '—')}
+      </div>
+
       <div class="card-actions">
-        <div class="card-actions">
 
-  <button class="icon-btn"
-          title="Duplicate"
-          onclick="duplicateProfile('${esc(sdrId)}','${esc(profId)}')">
-    <i class="fa fa-copy"></i>
-  </button>
+        <button class="icon-btn"
+                title="Duplicate"
+                onclick="duplicateProfile('${esc(sdrId)}','${esc(profId)}')">
+          <i class="fa fa-copy"></i>
+        </button>
 
-  <button class="icon-btn"
-          title="Copy To SDR"
-          onclick="copyProfileToSdr('${esc(sdrId)}','${esc(profId)}')">
-    <i class="fa fa-right-left"></i>
-  </button>
+        <button class="icon-btn"
+                title="Copy To SDR"
+                onclick="copyProfileToSdr('${esc(sdrId)}','${esc(profId)}')">
+          <i class="fa fa-right-left"></i>
+        </button>
 
-  <button class="icon-btn"
-          title="Edit"
-          onclick="openProfileModal('${esc(sdrId)}','${esc(profId)}')">
-    <i class="fa fa-pen"></i>
-  </button>
+        <button class="icon-btn"
+                title="Edit"
+                onclick="openProfileModal('${esc(sdrId)}','${esc(profId)}')">
+          <i class="fa fa-pen"></i>
+        </button>
 
-  <button class="icon-btn danger"
-          title="Delete"
-          onclick="deleteProfile('${esc(sdrId)}','${esc(profId)}')">
-    <i class="fa fa-trash"></i>
-  </button>
+        <button class="icon-btn danger"
+                title="Delete"
+                onclick="deleteProfile('${esc(sdrId)}','${esc(profId)}')">
+          <i class="fa fa-trash"></i>
+        </button>
 
       </div>
-    </div>`).join('');
+
+    </div>
+
+  `).join('');
 }
 
 function openProfileModal(defaultSdrId, editProfId) {
