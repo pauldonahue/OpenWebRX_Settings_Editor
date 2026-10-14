@@ -211,7 +211,6 @@ function renderDevices() {
         <div class="device-meta">ID: ${esc(id)} · ${esc(sdr.type)} · gain ${sdr.rf_gain ?? '—'} · ${pCount} profile${pCount !== 1?'s':''}</div>
       </div>
       <div class="card-actions">
-        <div class="card-actions">
 
   <button class="icon-btn"
           title="Clone Device"
@@ -226,7 +225,7 @@ function renderDevices() {
   </button>
 
   <button class="icon-btn primary"
-          title="Add Profile to this device"
+          title="Add Profile"
           onclick="openProfileModal('${esc(id)}')">
     <i class="fa fa-plus"></i>
   </button>
@@ -243,8 +242,7 @@ function renderDevices() {
     <i class="fa fa-trash"></i>
   </button>
 
-</div>
-    </div>`;
+</div>;
   }).join('');
 }
 
