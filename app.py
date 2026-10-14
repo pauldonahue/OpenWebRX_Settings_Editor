@@ -21,7 +21,7 @@ DEFAULT_SETTINGS = {
     "sdrs": {}
 }
 
-SDR_TYPES = ["rtl_sdr", "rtl_sdr_soapy", "sdrplay", "hackrf", "airspy",
+SDR_TYPES = ["rtl_sdr", "rtl_sdr_soapy", "rtl_tcp", "sdrplay", "hackrf", "airspy",
              "airspyhf", "fifi_sdr", "pluto_sdr", "sigmf", "runds",
              "uhd", "lime_sdr", "radioberry", "xtrx"]
 
